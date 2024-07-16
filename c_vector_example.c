@@ -1,4 +1,8 @@
-#include "c_dynamic_vector.h"
+#include "c_vector.h"
+
+/* Can use any type of object where the size 
+of the object is constant and the destructor 
+function is implemented */
 
 typedef struct student{
     char* name;
@@ -12,6 +16,7 @@ void free_student(void *inp){
     return;
 }
 
+/* This type of a constructor-like function is not necessary */
 student create_student(char* name, int age, int student_id){
     student new_student;
     new_student.name = strdup(name); 
@@ -22,13 +27,13 @@ student create_student(char* name, int age, int student_id){
 
 int main(void){
     student *vector;
-    vector = vector_initialize(vector, sizeof(*vector), free_student);
+    vector = vector_initialize(vector, sizeof(*vector), free_student); /* Initialize the vector to set the metadata */
 
-    student student1 = create_student("mia", 5, 125);
+    student student1 = create_student("mia", 5, 125); 
     student student2 = create_student("george", 7, 411);
     student student3 = create_student("steve", 9, 25);
     student student4 = create_student("baran", 4, 1);
-    vector = vector_push_back(vector, &student1);
+    vector = vector_push_back(vector, &student1); /* Don't forget to map the result to vector */
     vector = vector_push_back(vector, &student2);
     vector = vector_push_back(vector, &student3);
     vector = vector_insert(vector, &student4, 0);
@@ -37,5 +42,11 @@ int main(void){
     student *x = vector_at(vector, 1);
     printf("%s, %d, %d\n", x->name, x->age, x->student_id);
 
-    vector_free(vector);
+    student *y = vector_front(vector);
+    printf("%s, %d, %d\n", y->name, y->age, y->student_id);
+
+    student *z = vector_back(vector);
+    printf("%s, %d, %d\n", z->name, z->age, z->student_id);
+
+    vector_free(vector); /* Free all elements and metadata of vector to prevent memory leaks */
 }

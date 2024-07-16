@@ -1,7 +1,7 @@
 cc = gcc
 
-all: cvector_deneme.c c_dynamic_vector.c c_dynamic_vector.h
-	$(cc) -o cvector c_dynamic_vector.c c_dynamic_vector.h cvector_deneme.c
+all: c_vector_example.c c_vector.c c_vector.h
+	$(cc) -o cvector c_vector.c c_vector.h c_vector_example.c
 	
 clear:
 	rm -r cvector
