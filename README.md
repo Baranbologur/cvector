@@ -43,7 +43,7 @@ student create_student(char* name, int age, int student_id){
 }
 
 int main(void){
-    student *vector;
+    student *vector = NULL; /* Set the vector to NULL when declaring */
     vector = vector_initialize(vector, sizeof(*vector), free_student); /* Initialize the vector to set the metadata */
 
     student student1 = create_student("mia", 5, 125); 

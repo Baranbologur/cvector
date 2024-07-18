@@ -1,6 +1,8 @@
 #include "c_vector.h"
 
 void* vector_initialize(void *vec, size_t element_size, void (*destuctor_function)(void *)){
+    if(vec)
+        vector_free(vec);
     vector_metadata* metadata = (vector_metadata*) malloc(sizeof(vector_metadata));
     metadata->capacity = 0;
     metadata->size = 0;
@@ -29,6 +31,10 @@ int vector_get_capacity(void *vec) {
     return vec ? vector_get_metadata(vec)->capacity : 0;
 }
 
+void (*vector_get_destructor_function(void *vec))(void *) {
+    return vec ? vector_get_metadata(vec)->elem_destructor_func : NULL;
+}
+
 void vector_set_size(void *vec, int new_size) {
     if(vec)
         vector_get_metadata(vec)->size = new_size;
@@ -47,7 +53,17 @@ void vector_set_capacity(void *vec, int new_capacity) {
     return;
 }
 
+void vector_set_destructor_function(void *vec, void(*new_dest_func)(void *)) {
+    if(vec)
+        vector_get_metadata(vec)->elem_destructor_func = new_dest_func;
+    return;
+}
+
 void* vector_resize(void *vec, int new_capacity){
+    if (!vec){
+        printf("null vector in vector_resize!");
+        return NULL;
+    }
     size_t new_vector_size_in_bytes = new_capacity * vector_get_element_size(vec) + sizeof(vector_metadata);
     vector_metadata* metadata = vector_get_metadata(vec);
     metadata = realloc(metadata, new_vector_size_in_bytes);
@@ -60,11 +76,15 @@ int vector_calc_new_size(int oldsize){
 }
 
 void* vector_insert(void *vec, void *element_ptr, int index){
-    if(index < 0 || index > vector_get_size(vec)){
+    if (!vec){
+        printf("null vector in vector_insert!");
+        return NULL;
+    }
+    if (index < 0 || index > vector_get_size(vec)){
         printf("invalid index to insert!");
         return NULL;
     }
-    if(vector_get_size(vec) == vector_get_capacity(vec)){
+    if (vector_get_size(vec) == vector_get_capacity(vec)){
         int new_size = vector_calc_new_size(vector_get_size(vec));
         vec = vector_resize(vec, new_size);
     }
@@ -77,6 +97,10 @@ void* vector_insert(void *vec, void *element_ptr, int index){
 }
 
 void* vector_push_back(void *vec, void *element_ptr){
+    if (!vec){
+        printf("null vector in vector_push_back!");
+        return NULL;
+    }
     if(vector_get_size(vec) == vector_get_capacity(vec)){
         int new_size = vector_calc_new_size(vector_get_size(vec));
         vec = vector_resize(vec, new_size);
@@ -88,23 +112,35 @@ void* vector_push_back(void *vec, void *element_ptr){
 }
 
 void vector_erase(void *vec, int index){
+    if (!vec){
+        printf("null vector in vector_erase!");
+        return;
+    }
     if(index >= vector_get_size(vec)){
         printf("invalid index to remove!");
         return;
     }
     void *deleted_element_address = vec + index * vector_get_element_size(vec);
-    vector_get_metadata(vec)->elem_destructor_func(deleted_element_address);
-    memmove(deleted_element_address, deleted_element_address + vector_get_metadata(vec)->element_size,\
-        (vector_get_size(vec) - index - 1) * vector_get_metadata(vec)->element_size);
+    vector_get_destructor_function(vec)(deleted_element_address);
+    memmove(deleted_element_address, deleted_element_address + vector_get_element_size(vec),\
+        (vector_get_size(vec) - index - 1) * vector_get_element_size(vec));
     vector_set_size(vec, vector_get_size(vec) - 1);
     memset(vec + vector_get_size(vec) * vector_get_element_size(vec), 0, vector_get_element_size(vec));
 }
 
 void vector_pop_back(void *vec){
+    if (!vec){
+        printf("null vector in vector_pop_back!");
+        return;
+    }
     vector_erase(vec, vector_get_size(vec) - 1);
 }
 
 void* vector_at(void *vec, int index){
+    if (!vec){
+        printf("null vector in vector_at!");
+        return NULL;
+    }
     if(index < 0 || index >= vector_get_size(vec)){
         printf("invalid index to get!");
         return NULL;
@@ -116,20 +152,32 @@ void* vector_at(void *vec, int index){
 }
 
 void* vector_front(void *vec){
+    if (!vec){
+        printf("null vector in vector_front!");
+        return NULL;
+    }
     return vector_at(vec, 0);
 }
 
 void* vector_back(void *vec){
+    if (!vec){
+        printf("null vector in vector_back!");
+        return NULL;
+    }
     return vector_at(vec, vector_get_size(vec) - 1);
 }
 
 void vector_free(void *vec){
-    if(vec){
+    if (!vec){
+        printf("null vector in vector_free!");
+        return;
+    }
+    if (vector_get_destructor_function(vec)){
         for(int i = 0; i < vector_get_size(vec); i++){
             int* free_address = vec + i * vector_get_element_size(vec);
-            vector_get_metadata(vec)->elem_destructor_func(free_address);
+            vector_get_destructor_function(vec)(free_address);
         }
-        free(vector_get_metadata(vec));
     }
+    free(vector_get_metadata(vec));
     return;
 }
