@@ -4,7 +4,7 @@ This is a vector implementation in C, using separate compilation method. Functio
 
 ```
 +----------+------+--------------+------------+--------------------+
-| capacity | size | element size | desturctur | vector(data) ..... |
+| capacity | size | element size | destructor | vector(data) ..... |
 +----------+------+--------------+------------+--------------------+
 ^                                             ^
 | vector metadata                             | user's pointer
